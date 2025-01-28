@@ -104,24 +104,24 @@ SYSTEM_PROMPT = (
 )
 
 
-class WandbCallback(TrainerCallback):
-    def on_step_end(self, args, state, control, **kwargs):
-        """Log metrics to wandb at the end of each step."""
-        # Only log on the main process
-        if not self.trainer.is_world_process_zero():
-            return
+# class WandbCallback(TrainerCallback):
+#     def on_step_end(self, args, state, control, **kwargs):
+#         """Log metrics to wandb at the end of each step."""
+#         # Only log on the main process
+#         if not self.trainer.is_world_process_zero():
+#             return
             
-        if state.global_step % args.logging_steps == 0:
-            if hasattr(self.trainer, '_metrics'):
-                metrics = {k: sum(v)/len(v) for k, v in self.trainer._metrics.items()}
-                wandb.log({
-                    "train/loss": state.loss,
-                    "train/learning_rate": state.learning_rate,
-                    **{f"train/{k}": v for k, v in metrics.items()},
-                    "train/epoch": state.epoch,
-                    "train/global_step": state.global_step,
-                })
-        return control
+#         if state.global_step % args.logging_steps == 0:
+#             if hasattr(self.trainer, '_metrics'):
+#                 metrics = {k: sum(v)/len(v) for k, v in self.trainer._metrics.items()}
+#                 wandb.log({
+#                     "train/loss": state.loss,
+#                     "train/learning_rate": state.learning_rate,
+#                     **{f"train/{k}": v for k, v in metrics.items()},
+#                     "train/epoch": state.epoch,
+#                     "train/global_step": state.global_step,
+#                 })
+#         return control
 
 
 def main(script_args, training_args, model_args):
@@ -168,7 +168,7 @@ def main(script_args, training_args, model_args):
         train_dataset=dataset[script_args.dataset_train_split],
         eval_dataset=dataset[script_args.dataset_test_split] if training_args.eval_strategy != "no" else None,
         peft_config=get_peft_config(model_args),
-        callbacks=[WandbCallback],  # Add the wandb callback
+        # callbacks=[WandbCallback],  # Add the wandb callback
     )
 
     # Train and push the model to the Hub

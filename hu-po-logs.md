@@ -114,5 +114,6 @@ https://wandb.ai/hug/huggingface
 nuke, pull changes, update
 
 ```bash
-sudo pkill python* && git pull && pip install -e .
+sudo pkill python*
+git pull && pip install -e .
 ```
