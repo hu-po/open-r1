@@ -130,7 +130,6 @@ def main(script_args, training_args, model_args):
 
     # HACK: limit dataset size to speed up training
     dataset[script_args.dataset_train_split] = dataset[script_args.dataset_train_split].select(range(1000))
-    dataset[script_args.dataset_test_split] = dataset[script_args.dataset_test_split].select(range(100))
 
     # Format into conversation
     def make_conversation(example):
