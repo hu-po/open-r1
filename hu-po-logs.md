@@ -109,3 +109,10 @@ accelerate launch --config_file configs/zero3.yaml src/open_r1/grpo.py \
 visualizations on wandb
 
 https://wandb.ai/hug/huggingface
+
+pull changes
+
+```bash
+git pull
+pip install -e .
+```

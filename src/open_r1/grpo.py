@@ -104,13 +104,11 @@ SYSTEM_PROMPT = (
 class WandbCallback(TrainerCallback):
     def on_step_end(self, args, state, control, metrics=None, **kwargs):
         """Log metrics to wandb at the end of each step."""
+        # Only log on the main process
+        if not kwargs['trainer'].is_world_process_zero():
+            return
+            
         if state.global_step % args.logging_steps == 0:
-            # Get metrics from trainer._metrics which includes:
-            # - completion_length
-            # - rewards/{reward_func_name}
-            # - reward
-            # - reward_std
-            # - kl
             if hasattr(kwargs.get('trainer', None), '_metrics'):
                 metrics = {k: sum(v)/len(v) for k, v in kwargs['trainer']._metrics.items()}
                 wandb.log({
@@ -123,20 +121,21 @@ class WandbCallback(TrainerCallback):
 
 
 def main(script_args, training_args, model_args):
-    # Initialize wandb
-    wandb.init(
-        project="open-r1",
-        name=training_args.output_dir,
-        config={
-            "model_name": model_args.model_name_or_path,
-            "dataset": script_args.dataset_name,
-            "reward_funcs": script_args.reward_funcs,
-            "learning_rate": training_args.learning_rate,
-            "batch_size": training_args.train_batch_size,
-            "max_steps": training_args.max_steps,
-            "beta": training_args.beta,
-        }
-    )
+    # Initialize wandb only on the main process
+    if training_args.local_rank == 0:  # local_rank 0 is the main process
+        wandb.init(
+            project="open-r1",
+            name=training_args.output_dir,
+            config={
+                "model_name": model_args.model_name_or_path,
+                "dataset": script_args.dataset_name,
+                "reward_funcs": script_args.reward_funcs,
+                "learning_rate": training_args.learning_rate,
+                "batch_size": training_args.train_batch_size,
+                "max_steps": training_args.max_steps,
+                "beta": training_args.beta,
+            }
+        )
 
     # Get reward functions
     reward_funcs = [reward_funcs_registry[func] for func in script_args.reward_funcs]
@@ -170,8 +169,9 @@ def main(script_args, training_args, model_args):
     # Train and push the model to the Hub
     trainer.train()
     
-    # Close wandb
-    wandb.finish()
+    # Close wandb only on the main process
+    if training_args.local_rank == 0:
+        wandb.finish()
 
     # Save and push to hub
     trainer.save_model(training_args.output_dir)
