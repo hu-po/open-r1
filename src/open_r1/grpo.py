@@ -18,6 +18,7 @@ import logging
 from typing import Dict, Any
 import wandb
 from transformers import TrainerCallback
+from datetime import datetime
 
 from datasets import load_dataset
 
@@ -27,18 +28,17 @@ from trl import GRPOConfig, GRPOTrainer, ModelConfig, ScriptArguments, TrlParser
 
 
 @dataclass
-class GRPOScriptArguments(ScriptArguments):
+class GRPOScriptArguments:
     """
     Script arguments for the GRPO training script.
-
-    Args:
-        reward_funcs (`list[str]`):
-            List of reward functions. Possible values: 'accuracy', 'format'.
     """
-
     reward_funcs: list[str] = field(
         default_factory=lambda: ["accuracy", "format"],
         metadata={"help": "List of reward functions. Possible values: 'accuracy', 'format'"},
+    )
+    run_name: str = field(
+        default="",
+        metadata={"help": "Name for the wandb run. If empty, will use a generated name based on parameters."}
     )
 
 
@@ -102,15 +102,15 @@ SYSTEM_PROMPT = (
 
 
 class WandbCallback(TrainerCallback):
-    def on_step_end(self, args, state, control, metrics=None, **kwargs):
+    def on_step_end(self, args, state, control, **kwargs):
         """Log metrics to wandb at the end of each step."""
         # Only log on the main process
-        if not kwargs['trainer'].is_world_process_zero():
+        if not self.trainer.is_world_process_zero():
             return
             
         if state.global_step % args.logging_steps == 0:
-            if hasattr(kwargs.get('trainer', None), '_metrics'):
-                metrics = {k: sum(v)/len(v) for k, v in kwargs['trainer']._metrics.items()}
+            if hasattr(self.trainer, '_metrics'):
+                metrics = {k: sum(v)/len(v) for k, v in self.trainer._metrics.items()}
                 wandb.log({
                     "train/loss": state.loss,
                     "train/learning_rate": state.learning_rate,
@@ -118,14 +118,16 @@ class WandbCallback(TrainerCallback):
                     "train/epoch": state.epoch,
                     "train/global_step": state.global_step,
                 })
+        return control
 
 
 def main(script_args, training_args, model_args):
     # Initialize wandb only on the main process
-    if training_args.local_rank == 0:  # local_rank 0 is the main process
+    if training_args.local_rank == 0:
+        run_name = script_args.run_name or f"test_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
         wandb.init(
             project="open-r1",
-            name=training_args.output_dir,
+            name=run_name,
             config={
                 "model_name": model_args.model_name_or_path,
                 "dataset": script_args.dataset_name,

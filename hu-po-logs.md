@@ -103,6 +103,7 @@ accelerate launch --config_file configs/zero3.yaml src/open_r1/grpo.py \
     --per_device_train_batch_size 1 \
     --gradient_accumulation_steps 16 \
     --logging_steps 10 \
+    --run_name wololo \
     --bf16
 ```
 
