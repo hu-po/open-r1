@@ -36,8 +36,8 @@ class GRPOScriptArguments:
         default_factory=lambda: ["accuracy", "format"],
         metadata={"help": "List of reward functions. Possible values: 'accuracy', 'format'"},
     )
-    run_name: str = field(
-        default="",
+    wandb_run_name: str = field(
+        default="test",
         metadata={"help": "Name for the wandb run. If empty, will use a generated name based on parameters."}
     )
 
@@ -124,7 +124,7 @@ class WandbCallback(TrainerCallback):
 def main(script_args, training_args, model_args):
     # Initialize wandb only on the main process
     if training_args.local_rank == 0:
-        run_name = script_args.run_name or f"test_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+        run_name = script_args.wandb_run_name
         wandb.init(
             project="open-r1",
             name=run_name,
