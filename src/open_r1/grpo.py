@@ -14,6 +14,10 @@
 
 import re
 from dataclasses import dataclass, field
+import logging
+from typing import Dict, Any
+import wandb
+from transformers import TrainerCallback
 
 from datasets import load_dataset
 
@@ -97,7 +101,43 @@ SYSTEM_PROMPT = (
 )
 
 
+class WandbCallback(TrainerCallback):
+    def on_step_end(self, args, state, control, metrics=None, **kwargs):
+        """Log metrics to wandb at the end of each step."""
+        if state.global_step % args.logging_steps == 0:
+            # Get metrics from trainer._metrics which includes:
+            # - completion_length
+            # - rewards/{reward_func_name}
+            # - reward
+            # - reward_std
+            # - kl
+            if hasattr(kwargs.get('trainer', None), '_metrics'):
+                metrics = {k: sum(v)/len(v) for k, v in kwargs['trainer']._metrics.items()}
+                wandb.log({
+                    "train/loss": state.loss,
+                    "train/learning_rate": state.learning_rate,
+                    **{f"train/{k}": v for k, v in metrics.items()},
+                    "train/epoch": state.epoch,
+                    "train/global_step": state.global_step,
+                })
+
+
 def main(script_args, training_args, model_args):
+    # Initialize wandb
+    wandb.init(
+        project="open-r1",
+        name=training_args.output_dir,
+        config={
+            "model_name": model_args.model_name_or_path,
+            "dataset": script_args.dataset_name,
+            "reward_funcs": script_args.reward_funcs,
+            "learning_rate": training_args.learning_rate,
+            "batch_size": training_args.train_batch_size,
+            "max_steps": training_args.max_steps,
+            "beta": training_args.beta,
+        }
+    )
+
     # Get reward functions
     reward_funcs = [reward_funcs_registry[func] for func in script_args.reward_funcs]
 
@@ -116,7 +156,7 @@ def main(script_args, training_args, model_args):
     dataset = dataset.map(make_conversation)
     dataset = dataset.remove_columns("messages")
 
-    # Initialize the GRPO trainer
+    # Initialize the GRPO trainer with wandb callback
     trainer = GRPOTrainer(
         model=model_args.model_name_or_path,
         reward_funcs=reward_funcs,
@@ -124,10 +164,14 @@ def main(script_args, training_args, model_args):
         train_dataset=dataset[script_args.dataset_train_split],
         eval_dataset=dataset[script_args.dataset_test_split] if training_args.eval_strategy != "no" else None,
         peft_config=get_peft_config(model_args),
+        callbacks=[WandbCallback],  # Add the wandb callback
     )
 
     # Train and push the model to the Hub
     trainer.train()
+    
+    # Close wandb
+    wandb.finish()
 
     # Save and push to hub
     trainer.save_model(training_args.output_dir)
