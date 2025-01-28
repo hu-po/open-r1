@@ -128,8 +128,9 @@ def main(script_args, training_args, model_args):
     # Load the dataset
     dataset = load_dataset(script_args.dataset_name, name=script_args.dataset_config)
 
-    # HACK: limit dataset to 1000 examples to speed up training
-    dataset = dataset.select(range(1000))
+    # HACK: limit dataset size to speed up training
+    dataset[script_args.dataset_train_split] = dataset[script_args.dataset_train_split].select(range(1000))
+    dataset[script_args.dataset_test_split] = dataset[script_args.dataset_test_split].select(range(100))
 
     # Format into conversation
     def make_conversation(example):
