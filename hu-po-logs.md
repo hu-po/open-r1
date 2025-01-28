@@ -117,3 +117,8 @@ nuke, pull changes, update
 sudo pkill python*
 git pull && pip install -e .
 ```
+
+
+`17/1698 [34:44<57:09:43, 122.42s/it]`
+
+each training run will take 57 hours... too long, need to reduce
