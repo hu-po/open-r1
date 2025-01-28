@@ -111,8 +111,8 @@ visualizations on wandb
 
 https://wandb.ai/hug/huggingface
 
-pull changes
+nuke, pull changes, update
 
 ```bash
-git pull && pip install -e .
+sudo pkill python* && git pull && pip install -e .
 ```

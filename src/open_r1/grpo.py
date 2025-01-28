@@ -28,9 +28,12 @@ from trl import GRPOConfig, GRPOTrainer, ModelConfig, ScriptArguments, TrlParser
 
 
 @dataclass
-class GRPOScriptArguments:
+class GRPOScriptArguments(ScriptArguments):
     """
     Script arguments for the GRPO training script.
+    Args:
+        reward_funcs (`list[str]`):
+            List of reward functions. Possible values: 'accuracy', 'format'.
     """
     reward_funcs: list[str] = field(
         default_factory=lambda: ["accuracy", "format"],
@@ -157,7 +160,7 @@ def main(script_args, training_args, model_args):
     dataset = dataset.map(make_conversation)
     dataset = dataset.remove_columns("messages")
 
-    # Initialize the GRPO trainer with wandb callback
+    # Initialize the GRPO trainer
     trainer = GRPOTrainer(
         model=model_args.model_name_or_path,
         reward_funcs=reward_funcs,
