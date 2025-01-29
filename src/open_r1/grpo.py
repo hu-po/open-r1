@@ -43,6 +43,10 @@ class GRPOScriptArguments(ScriptArguments):
         default="test",
         metadata={"help": "Name for the wandb run. If empty, will use a generated name based on parameters."}
     )
+    max_train_samples: int = field(
+        default=None,
+        metadata={"help": "For debugging purposes, truncate the number of training examples to this value if set."}
+    )
 
 
 def accuracy_reward(completions, solution, **kwargs):
@@ -129,7 +133,8 @@ def main(script_args, training_args, model_args):
     dataset = load_dataset(script_args.dataset_name, name=script_args.dataset_config)
 
     # HACK: limit dataset size to speed up training
-    dataset[script_args.dataset_train_split] = dataset[script_args.dataset_train_split].select(range(1000))
+    if script_args.max_train_samples is not None:
+        dataset[script_args.dataset_train_split] = dataset[script_args.dataset_train_split].select(range(script_args.max_train_samples))
 
     # Format into conversation
     def make_conversation(example):
