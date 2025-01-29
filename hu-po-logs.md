@@ -1,5 +1,3 @@
-# 2025.01.27
-
 created fork of open-r1
 
 https://github.com/hu-po/open-r1
@@ -76,7 +74,7 @@ environment setup
 python --version
 sudo apt install git-lfs
 git-lfs --version
-cd open-r1-day2/ # name of the folder aka "filesystem" on the instance
+cd open-r1-day3/ # name of the folder aka "filesystem" on the instance
 git clone https://github.com/hu-po/open-r1.git
 cd open-r1/ # navigate to cloned repo folder
 pip install -e .
