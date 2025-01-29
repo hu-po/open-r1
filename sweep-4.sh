@@ -11,7 +11,6 @@ accelerate launch --config_file configs/zero3.yaml src/open_r1/grpo.py \
     --gradient_checkpointing \
     --logging_steps 1 \
     --wandb_run_name test-1b \
-    --max_train_samples 1000 \
     --bf16
 
 echo "Waiting 30 seconds before next run..."
