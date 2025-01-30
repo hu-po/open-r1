@@ -17,7 +17,7 @@ accelerate launch --config_file configs/zero3.yaml src/open_r1/grpo.py \
 echo "Waiting 30 seconds before next run..."
 sleep 30
 
-echo "Run 2: 7b-8kdata-1e4-beta004-temp09"
+echo "Run 2: 7b-8kdata-1e4-beta4-temp09"
 accelerate launch --config_file configs/zero3.yaml src/open_r1/grpo.py \
     --output_dir DeepSeek-R1-Distill-Qwen-7B-GRPO \
     --model_name_or_path deepseek-ai/DeepSeek-R1-Distill-Qwen-7B \
@@ -29,7 +29,7 @@ accelerate launch --config_file configs/zero3.yaml src/open_r1/grpo.py \
     --wandb_run_name 7b-8kdata-1e4-beta004-temp09 \
     --max_train_samples 8000 \
     --learning_rate 1e-4 \
-    --beta 0.004 \
+    --beta 0.4 \
     --bf16
 
 echo "Waiting 30 seconds before next run..."
@@ -53,7 +53,7 @@ accelerate launch --config_file configs/zero3.yaml src/open_r1/grpo.py \
 echo "Waiting 30 seconds before next run..."
 sleep 30
 
-echo "Run 4: 7b-8kdata-1e4-beta004-temp09"
+echo "Run 4: 7b-8kdata-1e4-beta04-temp09"
 accelerate launch --config_file configs/zero3.yaml src/open_r1/grpo.py \
     --output_dir DeepSeek-R1-Distill-Qwen-7B-GRPO \
     --model_name_or_path deepseek-ai/DeepSeek-R1-Distill-Qwen-7B \
@@ -71,7 +71,7 @@ accelerate launch --config_file configs/zero3.yaml src/open_r1/grpo.py \
 echo "Waiting 30 seconds before next run..."
 sleep 30
 
-echo "Run 5: 7b-8kdata-1e4-beta004-temp07"
+echo "Run 5: 7b-8kdata-1e4-beta04-temp07"
 accelerate launch --config_file configs/zero3.yaml src/open_r1/grpo.py \
     --output_dir DeepSeek-R1-Distill-Qwen-7B-GRPO \
     --model_name_or_path deepseek-ai/DeepSeek-R1-Distill-Qwen-7B \
