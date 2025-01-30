@@ -116,3 +116,11 @@ sudo pkill python*
 git pull
 pip install -e .
 ```
+
+They changed it to VLLM, need to update installation
+
+```bash
+pip install uv
+uv venv openr1 --python 3.11 && source openr1/bin/activate && uv pip install --upgrade pip
+uv pip install vllm==0.6.6.post1
+```
